@@ -24,7 +24,7 @@ class PrepareForMultiheadAttention(nn.Module):
         # Number of dimensions in each head
         self.d_k = d_k
 
-    def forward(self, x: torch.tensor): 
+    def forward(self, x: torch.Tensor): 
         # input has shape [seq_len, batch_size, d_model] or [batch_size, d_model]
         # We wan tto split last dim into heads 
         head_shape = x.shape[:-1]
@@ -106,8 +106,7 @@ class MultiHeadAttention(nn.Module):
     def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: Optional[torch.Tensor] = None):
         seq_len, batch_size, _ = query.shape
 
-        if mask is not None:
-            mask = self.prepare_mask(mask, query.shape, key.shape)
+        if mask is not None:mask = self.prepare_mask(mask, list(query.shape), list(key.shape))
 
         query = self.query(query)
         key = self.key(key)
@@ -119,11 +118,12 @@ class MultiHeadAttention(nn.Module):
 
         # apply mask
         if mask is not None:
-            scores = torch.masked_fill(mask==0, float('-inf'))
+            scores = scores.masked_fill(mask == 0, float('-inf'))
 
         attn = self.softmax(scores)
 
-        tracker.debug('attn', attn)
+        # debug if needed
+        # tracker.debug('attn', attn)
 
         attn = self.dropout(attn)
 
